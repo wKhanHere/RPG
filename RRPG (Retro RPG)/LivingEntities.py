@@ -11,68 +11,111 @@ import pandas as P
 
 class LivingEntity():
     def __init__(self):
+        #Gear (Inventory)
+        self.EquippedGear:dict = { 
+            "Helmet": None,"Chestplate": None,"Leggings": None,"Boots": None,"Gloves": None,
+            "MainHandWeapon": None,"OffHandWeapon": None,
+            "Artifacts":[None],
+            } #All slots none for now, will be refined later.
+              #This should be coded in such a way that, if an entity class is defined with an EquippedGear dict containing more than just this, it also counts towards its stats.
+        #IDs and Names.
+        self.EntityId:str = "entity:placeholder" #Used for registry and all
+        self.EntityName:str = "Placeholder Entity" #Used for displaying name and all
+        self.EntityUUID:uuid.UUID = uuid.uuid4() #Unique for each entity, used for saving and all.
         #Stats
         self.MaxHp:float = 20 #MaxHP: Determine by Player Perm Upgrades, Player Gear, Player Potions, and Base 20
         self.Hp:float = copy.copy(self.MaxHp) #Tracked by health function.
         self.MaxStamina:float = 3 #AP System like in Reverse1999
         self.Stamina:float = copy.copy(self.MaxStamina)
+        self.MeleeAtk:float = 1 #Base 1, Also Affected by Stamina cost: Charged Attacks Take Extra Stamina.
+        self.RangedAtk:float = 1 #Base 1, Affected also by Throwing Power -> Essentialy use multiple turns to deal more damage #Think Imbibitor Lunae (Danheng)
         #Both Atk, Affected by Gear and buffs and tree upgrades.
-        #Condition for attacking is keeping having "Stamina" (somewhat like AP in Reverse1999, but this will also have an exact replica of AP for multi attack turn planning (Basically Reverse1999 Gameplay))
+        #Condition for attacking is keeping having "Stamina" (Regens like in Reverse1999's AP, used like Honkai Starrail's Action Points)
+        self.CriticalChance:float = 0.05 #Base 5% crit chance
+        self.CriticalDamage:float = 1.5 #Base 150% Crit Damage
+        self.Evasion:float = 0.05 #Base 5% Dodge Chance
+        self.Speed:float = 1.0 #Base 1 Speed #Affects turn order in battles. #alike speed and action values in Honkai Starrail
+        self.Effects:P.DataFrame = P.DataFrame(columns=["EffectName","Duration","EffectStrength"]) #Dataframe to store effects, their durations and strengths.
+        #Might need to add functions to add effects, remove effects, tick effects (reduce duration by 1 each turn), clear effects (remove all effects)
         
-        #New Stats: Add these to the constructor class method
-        self.CritcalChance:float = 0.05 #Base 5% crit chance
-        self.CritcalDamage:float = 1.5 #Base 150% Crit Damage
-        self.DodgeChance:float = 0.05 #Base 5% Dodge Chance
-        self.Armor:float = 0.0 #Base 0 Armor
-        self.HealthRegen:float = 0.0 #Base 0 Health Regen per turn
-        self.StaminaRegen:float = 1.0 #Base 1 Stamina Regen per turn
-        self.Speed:float = 1.0 #Base 1 Speed
-        
-        #New Stats End
-        
-        #Fancy Stats: These exist, cool stuff, all default to 1 or 0
-        self.ContactAtk:float = 1 #Base 1, Also Affected by Stamina cost: Charged Attacks Take Extra Stamina.
-        self.RangedAtk:float = 1 #Base 1, Affected also by Throwing Power -> Essentialy use multiple turns to deal more damage, #Stuff like Quick Shot etc wil be here (Turn cost essentially)
-        #Power values for each type: I am gonna make like 16types and create something similiar to Pokemon type matching since what I don't quite like about Wynn is other than Max Dpsing, you really can just ignore other types
-        self.PhysicalPower:float = 1 #Base 1, Typeless(Physical) attack damage power multiplier
+        #Atk Power values for each type. Used to derive damage multipliers.
+        self.PhysicalPower:float = 1 #Base 1, Typeless(i.e. Physical) attack damage power multiplier
         self.EarthPower:float = 0
         self.WaterPower:float = 0
         self.FirePower:float = 0
         self.WindPower:float = 0
+        self.LightningPower:float = 0
         self.VoidPower:float = 0
-        self.LightPower:float = 0 
-        #Similiarly, add ContactDefense, RangedDefense, Type Defenses. 
+        self.LightPower:float = 0
+        self.StellarPower:float = 0
+        #Defense Will use direct values unlike power value scaling of atks.
+        self.PhysicalRes:float = 1 #Base 1, Reduces Physical Damage taken.
+        self.EarthRes:float = 0
+        self.WaterRes:float = 0
+        self.FireRes:float = 0
+        self.WindRes:float = 0
+        self.LightningRes:float = 0
+        self.VoidRes:float = 0
+        self.LightRes:float = 0
+        self.StellarRes:float = 0
         
-        #You might need an inventory system for Living Entity.
-        
-        #IDs and Names.
-        self.EntityId:str = "entity:placeholder" #Used for registry and all
-        self.EntityName:str = "Placeholder Entity" #Used for displaying name and all
-        self.EntityUUID:uuid.UUID = uuid.uuid4() #Unique for each entity, used for saving and all.
-       
-    @classmethod
-    def CreateGenericEntity(cls,EntityId: str = "entity:placeholder",EntityName: str = "Placeholder Entity",MaxHp: float = 20.0,MaxStamina: float = 3.0,ContactAtk: float = 1.0,RangedAtk: float = 1.0,PhysicalPower: float = 1.0,EarthPower: float = 0.0,WaterPower: float = 0.0,FirePower: float = 0.0,WindPower: float = 0.0,VoidPower: float = 0.0,LightPower: float = 0.0): 
-        Entity:LivingEntity = cls()
+    @classmethod #this along with the init function needs a entity gear read and thus applying those stats to the entity.
+    def CreateGenericEntity(
+        cls,
+        EquippedGear:dict = { 
+            "Helmet": None,"Chestplate": None,"Leggings": None,"Boots": None,"Gloves": None,
+            "MainHandWeapon": None,"OffHandWeapon": None,
+            "Artifacts":[None],
+            },
+        EntityId:str = "entity:placeholder", EntityName:str = "Placeholder Entity",
+        MaxHp:float = 20.0, MaxStamina:float = 3.0,
+        MeleeAtk:float = 1.0, RangedAtk:float = 1.0,
+        CriticalChance:float = 0.05, CriticalDamage:float = 1.5,
+        Evasion:float = 0.05, Speed:float = 1.0,
+        PhysicalPower:float = 1.0, EarthPower:float = 0.0, WaterPower:float = 0.0, FirePower:float = 0.0,
+        WindPower:float = 0.0, LightningPower:float = 0.0, VoidPower:float = 0.0, LightPower:float = 0.0, StellarPower:float = 0.0,
+        PhysicalRes:float = 1.0, EarthRes:float = 0.0, WaterRes:float = 0.0, FireRes:float = 0.0,
+        WindRes:float = 0.0, LightningRes:float = 0.0, VoidRes:float = 0.0, LightRes:float = 0.0, StellarRes:float = 0.0,
+    ):
+        Entity: LivingEntity = cls()
+        # Identity
+        Entity.EquippedGear = EquippedGear
         Entity.EntityId = EntityId
         Entity.EntityName = EntityName
+        # Core stats
         Entity.MaxHp = MaxHp
         Entity.Hp = copy.copy(Entity.MaxHp)
         Entity.MaxStamina = MaxStamina
         Entity.Stamina = copy.copy(Entity.MaxStamina)
-        Entity.ContactAtk = ContactAtk
+        Entity.MeleeAtk = MeleeAtk
         Entity.RangedAtk = RangedAtk
+        Entity.CriticalChance = CriticalChance
+        Entity.CriticalDamage = CriticalDamage
+        Entity.Evasion = Evasion
+        Entity.Speed = Speed
+        # Powers
         Entity.PhysicalPower = PhysicalPower
         Entity.EarthPower = EarthPower
         Entity.WaterPower = WaterPower
         Entity.FirePower = FirePower
         Entity.WindPower = WindPower
+        Entity.LightningPower = LightningPower
         Entity.VoidPower = VoidPower
         Entity.LightPower = LightPower
+        Entity.StellarPower = StellarPower
+        # Defenses
+        Entity.PhysicalRes = PhysicalRes
+        Entity.EarthRes = EarthRes
+        Entity.WaterRes = WaterRes
+        Entity.FireRes = FireRes
+        Entity.WindRes = WindRes
+        Entity.LightningRes = LightningRes
+        Entity.VoidRes = VoidRes
+        Entity.LightRes = LightRes
+        Entity.StellarRes = StellarRes
         return Entity
     
-        #May need more detailed entity creation functions like CreateMonsterEntity, CreateNPCEntity and all.
-        #That may also include functions for loot tables and all.
-        #Also might need to add more parameters here like resistances and all.
+        #For loottables, there will be no parameters here, it will be managed indivitually by each entity class, maybe even a loottable builder class.
         #Also might need to add status effects and all.
         #May need to add functions for LivingEntity like TakeDamage, Heal, UseStamina, RecoverStamina, Die and all.
 
@@ -85,7 +128,7 @@ class PlaceholderEntity(LivingEntity):
         self.Hp = copy.copy(self.MaxHp)
         self.MaxStamina = 3
         self.Stamina = copy.copy(self.MaxStamina)
-        self.ContactAtk = 1
+        self.MeleeAtk = 1
         self.RangedAtk = 1
         self.PhysicalPower = 1
         self.EarthPower = 0
@@ -104,7 +147,7 @@ class Player(LivingEntity):
         self.Hp = copy.copy(self.MaxHp)
         self.MaxStamina = 5
         self.Stamina = copy.copy(self.MaxStamina) #I think double defination is stupid, try to find a way around.
-        self.ContactAtk = 5
+        self.MeleeAtk = 5
         self.RangedAtk = 1
         
         #PlayerSpecific Stats:
@@ -118,7 +161,7 @@ class Player(LivingEntity):
         Move2:M.Moves = M.MovesRegistryObj.GetMove("physical:slap")
         Move3:M.Moves = M.MovesRegistryObj.GetMove("void:zap")
         Move4:M.Moves = M.MovesRegistryObj.GetMove("physical:placeholder")
-        self.MoveSet:M.MoveSet = M.MoveSet({"M1": Move1, "M2": Move2, "M3": Move3, "M4": Move4}) #May wanna make this a list or Array (numpy one)
+        self.MoveSet:M.MoveSet = M.MoveSet({"M1": Move1, "M2": Move2, "M3": Move3, "M4": Move4})
         #endregion MoveSet
 
         #region Booleans & IDs
@@ -195,7 +238,7 @@ class Player(LivingEntity):
         return (self.Inventory["Quantity"] * self.Inventory["Weight"]).sum()       
      
     #region Move Manager
-    def MoveSetManager(self): #!!I dont think this is complete
+    def MoveSetManager(self): #!!I dont think this is complete:: I think this is managed by Moveset class, I just need execution here.
         #Add a try and catch to this to catch invalid options
         ViewBool:bool = bool(input("[1] View All Moves\n[2] View Learned Moves") - 1) #True -> 2, False -> 1        
         self.ViewMoves(ViewBool)
@@ -204,20 +247,24 @@ class Player(LivingEntity):
     def ViewMoves(self,ViewBool:bool): #!!I dont think this is complete
         print("\n")
         if ViewBool == True:
-            for i in list(self.MoveSet.MoveSetObj.keys()):
+            for i in list(self.MoveSet.MoveSetObj.keys()): #Fetches keys from moveset objects' dict, then prints chosen move out.
                 Move:M.Moves = self.MoveSet.GetMove(i)
                 print(f"[{i}] {Move.MoveName}")
             Move:M.Moves = self.MoveSet.GetMove(input("Choose which move to view.\n(Enter in exact format as displayed.)\n"))
-            Move.ViewMove() #Add a view move function to parent Moves Class
-        else:
-            MovesRegistryObj:M.MovesRegistry = M.MovesRegistryObj
+            Move.ViewMove()
+        else: #A few points for this part: Make it so that Ids are only shown in "debug mode" (make a debug mode now, yay... pain)
+            #Make line 7 (respective to here, the one ahead try:) cleaner 
             a = 1
-            for i in MovesRegistryObj.MovesList: #Uni move set does not have anything as of now
-                Move:M.Moves = MovesRegistryObj.MovesList[i]
-                print(f"[{a}] {Move.MoveName}, (MoveId: \"{i}\")")
+            for i in M.MovesRegistryObj.MovesList: #Moves list is actually a dictonary btw.
+                Move:M.Moves = M.MovesRegistryObj.MovesList[i]
+                print(f"[{a}] {Move.MoveName} (MoveId: \"{i}\")")
                 a += 1
-            Move:M.Moves = MovesRegistryObj.MovesList[input("Choose which move to view.\n[Enter index in exact format as displayed.]")] #Add a try and catch to this to catch invalid options
-            Move.ViewMove()  #Add a view move function to parent Moves Class
+            try:
+                Move:M.Moves = list(M.MovesRegistryObj.MovesList.values())[int(input("Choose which move to view.\n[Enter index in exact format as displayed.]\n"))-1]
+                Move.ViewMove()
+            except (KeyError, ValueError):
+                print("Invalid index. Please try again.") #Try making this actually try again.
+                
     #endregion
     
     #May need more functions like UseItem, EquipGear.
@@ -241,19 +288,36 @@ def RegisterEntities(RegistryObj: EntitiesRegistry, EntityOrParams: Union[Living
     """
     Register either using a LivingEntity instance or a dict of kwargs for CreateGenericEntity.\n
     The dict can contain any of the following keys:\n
-        "EntityId": str,          # default "entity:placeholder"\n
-        "EntityName": str,        # default "Placeholder Entity"\n
-        "MaxHp": float,           # default 20.0\n
-        "MaxStamina": float,      # default 3.0\n
-        "ContactAtk": float,      # default 1.0\n
-        "RangedAtk": float,       # default 1.0\n
-        "PhysicalPower": float,   # default 1.0\n
-        "EarthPower": float,      # default 0.0\n
-        "WaterPower": float,      # default 0.0\n
-        "FirePower": float,       # default 0.0\n
-        "WindPower": float,       # default 0.0\n
-        "VoidPower": float,       # default 0.0\n
-        "LightPower": float       # default 0.0\n
+        "EquippedGear":dict 
+        #default: { "Helmet": None, "Chestplate": None, "Leggings": None, "Boots": None, "Gloves": None, "MainHandWeapon": None, "OffHandWeapon": None, "Artifacts":[None]}\n
+        "EntityId": str,            # default "entity:placeholder"\n
+        "EntityName": str,          # default "Placeholder Entity"\n
+        "MaxHp": float,             # default 20.0\n
+        "MaxStamina": float,        # default 3.0\n
+        "MeleeAtk": float,          # default 1.0\n
+        "RangedAtk": float,         # default 1.0\n
+        "CriticalChance": float,    # default 0.05\n
+        "CriticalDamage": float,    # default 1.5\n
+        "Evasion": float,           # default 0.05\n
+        "Speed": float,             # default 1.0\n
+        "PhysicalPower": float,     # default 1.0\n
+        "EarthPower": float,        # default 0.0\n
+        "WaterPower": float,        # default 0.0\n
+        "FirePower": float,         # default 0.0\n
+        "WindPower": float,         # default 0.0\n
+        "LightningPower": float,    # default 0.0\n
+        "VoidPower": float,         # default 0.0\n
+        "LightPower": float,        # default 0.0\n
+        "StellarPower": float,      # default 0.0\n
+        "PhysicalRes": float,       # default 1.0\n
+        "EarthRes": float,          # default 0.0\n
+        "WaterRes": float,          # default 0.0\n
+        "FireRes": float,           # default 0.0\n
+        "WindRes": float,           # default 0.0\n
+        "LightningRes": float,      # default 0.0\n
+        "VoidRes": float,           # default 0.0\n
+        "LightRes": float,          # default 0.0\n
+        "StellarRes": float         # default 0.0\n
     \n
     Any omitted values will use the defaults from CreateGenericEntity.\n
     """
@@ -276,7 +340,7 @@ def ValidateEntityRegistryKeys(RegistryKeys: list[str], Strict: bool = False) ->
     if expected != RegistryKeys:
         msg = (
             "Warning: EntityRegistryKeys does not match LivingEntity.CreateGenericEntity parameter order.\n"
-            f"Expected (from CreateGenericEntity): {expected}\n"
+            f"Expected (from CreateGenericEntity): {expected}\n\n"
             f"Current (EntityRegistryKeys): {RegistryKeys}\n"
         )
         if Strict:
@@ -285,26 +349,25 @@ def ValidateEntityRegistryKeys(RegistryKeys: list[str], Strict: bool = False) ->
             print(msg)
             return False
     return True
+
+def BuildEntityRegistryKeysFromInit() -> list[str]:
+    """
+    Build keys from a default LivingEntity instance (__init__ order), but keep only\n
+    those that are valid kwargs for CreateGenericEntity (so **dict calls won’t fail).\n
+    This auto-updates keys if you reorder attributes in init or change CreateGenericEntity’s accepted parameters.\n
+    If you later add more params to CreateGenericEntity, they’ll be picked up automatically as long as they’re set in init too.
+    """
+    probe = LivingEntity()
+    init_order_keys = list(probe.__dict__.keys())
+    sig = inspect.signature(LivingEntity.CreateGenericEntity)
+    allowed = {p.name for p in sig.parameters.values() if p.name != "cls"}
+    return [k for k in init_order_keys if k in allowed]
  
 #region Registry    
 EntitiesRegistryObj = EntitiesRegistry()
 # Entity registry keys mirror the CreateGenericEntity parameter order
-EntityRegistryKeys: list = [
-    "EntityId",
-    "EntityName",
-    "MaxHp",
-    "MaxStamina",
-    "ContactAtk",
-    "RangedAtk",
-    "PhysicalPower",
-    "EarthPower",
-    "WaterPower",
-    "FirePower",
-    "WindPower",
-    "VoidPower",
-    "LightPower"
-]
-# Validate registry key ordering against CreateGenericEntity Signature (prints warning when mismatch)
+EntityRegistryKeys: list = BuildEntityRegistryKeysFromInit()
+# Validate registry key ordering against CreateGenericEntity Signature (raises ValueError when mismatch)
 ValidateEntityRegistryKeys(EntityRegistryKeys, Strict=True)
 
 RegisterEntities(EntitiesRegistryObj, Player())
@@ -314,7 +377,7 @@ RegisterEntities(EntitiesRegistryObj, {
     "EntityName": "White Slime", #White -> Wind
     "MaxHp": 30.0,
     "MaxStamina": 4.0,
-    "ContactAtk": 1.0,
+    "MeleeAtk": 1.0,
     "WindPower": 1.0,
     "RangedAtk": 2
 })
@@ -322,8 +385,9 @@ RegisterEntities(EntitiesRegistryObj, dict(zip(EntityRegistryKeys, ["entity:gobl
 #Essentially three methods of registry: Via Object Class, Via Dict, Via List
 #endregion
 
-Player1 = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:player"))
-Slime = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:slime"))
-Goblin = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:goblin"))
-Player1.ViewMoves(True)
+Player1:Player = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:player"))
+Slime:LivingEntity = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:slime"))
+Goblin:LivingEntity = copy.deepcopy(EntitiesRegistryObj.GetEntity("entity:goblin"))
+Player1.ViewMoves(False)
+print(Player1.EntityUUID)
 

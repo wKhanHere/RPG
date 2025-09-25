@@ -16,14 +16,21 @@ class Moves:
         Atk.MoveBaseDamage: float = 1  # Might wanna make this scale with levels and all.
         Atk.MoveBaseStaminaCost: float = 1
         Atk.MoveType: str = "Physical"  # Could turn types into their classes too and use type as a class for its own datatype
-
+    
     # def __init_subclass__(Effect):
     #     Effect.Type: Effect = Stun()  # Create an effects class and all for this.
 
     def ViewMove(self):
-        print("---------------MOVE---------------")
-        print(f"Name: {self.MoveName}\nType: {self.MoveType}\nBase Damage: {self.MoveBaseDamage}\nStamina Cost: {self.MoveBaseStaminaCost}\nCooldown: {self.MoveCooldown}\nDescription: {self.Description}") 
-        print("----------------------------------")
+        dashwidth = int((len(self.Description)+14)*0.5)
+        print(f"{'-'*dashwidth}MOVE{'-'*dashwidth}")
+        print(
+            f"Name: {self.MoveName}\n"
+            f"Type: {self.MoveType}\n"
+            f"Base Damage: {self.MoveBaseDamage}\n"
+            f"Stamina Cost: {self.MoveBaseStaminaCost}\n"
+            f"Cooldown: {self.MoveCooldown}\n"
+            f"Description: {self.Description}") 
+        print(f"{'-'*((dashwidth*2)+4)}")
 
     @classmethod
     def CreateGenericMove(cls, MoveId, MoveName, Description, MoveBaseDamage, MoveBaseStaminaCost, MoveCooldown, MoveType):
@@ -39,7 +46,7 @@ class Moves:
 
 class MovesRegistry:
     def __init__(self):
-        self.MovesList: dict[str, Moves] = {}
+        self.MovesList: dict[str, Moves] = {} #WHY IS THIS CALLED A LIST
 
     def RegisterCustomMove(self, Move: Moves):
         if Move.MoveId in self.MovesList:
@@ -55,11 +62,12 @@ class MoveSet:
         '''Initializes a MoveSet with 4 move slots (M1 to M4). If no slots provided, defaults to placeholders.'''
         self.MoveSetObj: dict = slots.copy() if slots else {"M1": MovesRegistryObj.GetMove("physical:placeholder"), "M2": MovesRegistryObj.GetMove("physical:placeholder"), "M3": MovesRegistryObj.GetMove("physical:placeholder"), "M4": MovesRegistryObj.GetMove("physical:placeholder")}
 
-    def GetMove(self, slot: str | None = None) -> Moves:
+    def GetMove(self, slot: str = "M1") -> Moves:
         '''Gets a move from the specified slot, or M1 by default'''
-        if slot:
+        if slot in ["M1", "M2", "M3", "M4"]:
             return self.MoveSetObj.get(slot)
-        return self.MoveSetObj.get("M1")  # Default to M1 if no slot specified.
+        print("Invalid slot specified, defaulting to M1.")
+        return self.MoveSetObj.get("M1")  # Default to M1 if no slot/incorrect slot specified.
 
     def SetMove(self, slot: str, move: Moves):
         '''Sets a move in the specified slot'''
@@ -158,9 +166,19 @@ RegisterMoves(MovesRegistryObj, {
     "Description": "A quick jolt of electricity.",
     "MoveBaseDamage": 7,
     "MoveBaseStaminaCost": 2,
-    "MoveCooldown": 1,
+    "MoveCooldown": 0,
     "MoveType": "Void"
 })
 RegisterMoves(MovesRegistryObj, dict(zip(MoveRegistryKeys, ["physical:slap","Slap","A quick slap with a large trout.",5,1,0,"Physical"]))) #Just for testing
 #Essentially three methods of registry: Via Object Class, Via Dict, Via List
+
+RegisterMoves(MovesRegistryObj, {
+    "MoveId": "light:brilliant_lance",
+    "MoveName": "Brilliant Lance",
+    "Description": "A brilliant lance of light pierces the enemy.",
+    "MoveBaseDamage": 12,
+    "MoveBaseStaminaCost": 3,
+    "MoveCooldown": 2,
+    "MoveType": "Light"
+})
 #endregion

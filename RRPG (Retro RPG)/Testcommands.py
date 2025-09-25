@@ -88,3 +88,18 @@ Moves.CreateGenericMove(
 #Summary:
 #**dict unpacks the dictionary so each key-value pair is passed as a named argument to the function. 
 # The function’s parameter names must match the dictionary’s keys.'''
+
+
+#Insight 12: Excerpt from Moves.py
+''' else:
+            a = 1
+            for i in M.MovesRegistryObj.MovesList: #Uni move set does not have anything as of now
+                Move:M.Moves = M.MovesRegistryObj.MovesList[i]
+                print(f"[{a}] {Move.MoveName} (MoveId: \"{i}\")")
+                a += 1
+            try:
+                Move:M.Moves = M.MovesRegistryObj.MovesList[input("Choose which move to view.\n[Enter index in exact format as displayed.]")]
+                Move.ViewMove()  #Add a view move function to parent Moves Class
+            except KeyError:
+                print("Invalid index. Please try again.")'''
+    #Example of try and except block to catch errors.
