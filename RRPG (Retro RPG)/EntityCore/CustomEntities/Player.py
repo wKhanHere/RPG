@@ -6,7 +6,7 @@ import copy
 
 class MoveSet:
     def __init__(self, slots: dict | None = None): #!Needs to Deal with Empty Slots
-        '''Initializes a MoveSet with 4 move slots (M1 to M4). If no slots provided, defaults to placeholders.'''
+        """Initializes a MoveSet with 4 move slots (M1 to M4). If no slots provided, defaults to placeholders."""
         self.MoveSetObj: dict = slots.copy() if slots else {
             "M1": MR.MovesRegistryObj.GetMove("physical:placeholder"),
             "M2": MR.MovesRegistryObj.GetMove("physical:placeholder"),
@@ -15,20 +15,20 @@ class MoveSet:
         }
 
     def GetMove(self, slot: str = "M1") -> M.Moves:
-        '''Gets a move from the specified slot, or M1 by default'''
+        """Gets a move from the specified slot, or M1 by default"""
         if slot in ["M1", "M2", "M3", "M4"]:
             return self.MoveSetObj.get(slot)
         print("Invalid slot specified, defaulting to M1.")
         return self.MoveSetObj.get("M1")  # Default to M1 if no slot/incorrect slot specified.
 
     def SetMove(self, slot: str, move: M.Moves):
-        '''Sets a move in the specified slot'''
+        """Sets a move in the specified slot"""
         if slot not in self.MoveSetObj:
             raise KeyError(f"Invalid slot: {slot}")
         self.MoveSetObj[slot] = move
 
     def Swap(self, slot_a: str, slot_b: str):
-        '''Swaps two moves in the moveset'''
+        """Swaps two moves in the moveset"""
         self.MoveSetObj[slot_a], self.MoveSetObj[slot_b] = self.MoveSetObj[slot_b], self.MoveSetObj[slot_a]
 
     def AsList(self) -> list: #converts moveset to a list of move objects, damn
@@ -39,7 +39,7 @@ class MoveSet:
 
 
 class Player(L.LivingEntity):
-    def __init__(self,Name:str="Player"):
+    def __init__(self,name:str="Player"):
         #region Stats
         super().__init__()
         self.MaxHp = 100
@@ -66,7 +66,7 @@ class Player(L.LivingEntity):
         #region Booleans & IDs
         self.InBattle:bool = False
         self.EntityId:str = "entity:player"
-        self.EntityName:str = Name
+        self.EntityName:str = name
         self.PermUpgrades:dict = {} #Permanent Upgrades. Like Max Hp Upgrades,atk,etc.
         #endregion Booleans & IDs
 

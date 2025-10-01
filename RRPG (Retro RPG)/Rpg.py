@@ -7,7 +7,7 @@ import EntityCore.LivingEntities as L
 #import ItemsCore.Items as I
 import MovesCore.MovesRegistry as MR
 import MovesCore.Moves as M
-class Battle():
+class Battle:
     def __init__(self,MobPool:list,LootPool:list): #Add a default mobpool and lootpool.
         self.MobPool = MobPool if MobPool else []
         self.LootPool = LootPool if LootPool else []

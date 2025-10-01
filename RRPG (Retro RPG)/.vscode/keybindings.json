@@ -1,0 +1,7 @@
+[
+  {
+    "key": "f23",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Run Rpg through Init"
+  }
+]
