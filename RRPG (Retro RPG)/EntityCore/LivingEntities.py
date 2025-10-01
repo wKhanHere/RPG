@@ -1,7 +1,7 @@
 import copy, uuid
 import pandas as P
 
-class LivingEntity():
+class LivingEntity:
     def __init__(self):
         #Gear (Inventory)
         self.EquippedGear:dict = { 

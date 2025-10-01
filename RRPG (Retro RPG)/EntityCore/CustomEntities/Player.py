@@ -45,7 +45,7 @@ class Player(L.LivingEntity):
         self.MaxHp = 100
         self.Hp = copy.copy(self.MaxHp)
         self.MaxStamina = 5
-        self.Stamina = copy.copy(self.MaxStamina) #I think double defination is stupid, try to find a way around.
+        self.Stamina = copy.copy(self.MaxStamina) #I think double definition is stupid, try to find a way around.
         self.MeleeAtk = 5
         self.RangedAtk = 1
         
@@ -138,4 +138,4 @@ class Player(L.LivingEntity):
     #endregion
     
     #May need more functions like UseItem, EquipGear.
-#Might wanna move a variant of moveset manager to Parent LivingEntity class, as the mobs will choose moves depending on the Player's kit.    
+#Might want to move a variant of moveset manager to Parent LivingEntity class, as the mobs will choose moves depending on the Player's kit.

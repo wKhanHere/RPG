@@ -11,7 +11,7 @@ class Battle:
     def __init__(self,MobPool:list,LootPool:list): #Add a default mobpool and lootpool.
         self.MobPool = MobPool if MobPool else []
         self.LootPool = LootPool if LootPool else []
-        self.BattleGrid:GS.grid = GS.grid(5,5) #Default 5x5 grid for battles.
+        self.BattleGrid:GS.Grid = GS.Grid(5, 5) #Default 5x5 grid for battles.
         self.TurnOrder:list = [] #List of LivingEntity objects in turn order.
 if __name__ == "__main__":
     print("RPG Module Loaded")
