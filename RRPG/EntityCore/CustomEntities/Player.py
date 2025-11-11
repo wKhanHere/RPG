@@ -90,7 +90,7 @@ class Player(LivingEntity.LivingEntity):
     def RemoveItem(self, item_id, quantity=1):
         """Remove a quantity of an item by ItemId."""
         indexValue = list(self.Backpack[self.Backpack["ItemId"] == item_id].index)
-        if not indexValue:
+        if indexValue:
             current_qty = self.Backpack.at[indexValue[0], "Quantity"]
             if current_qty > quantity:
                 self.Backpack.loc[indexValue[0], "Quantity"] -= quantity
@@ -107,16 +107,16 @@ class Player(LivingEntity.LivingEntity):
         print(df if not df.empty else "Inventory is empty.")
  
     #region Move Manager
-    def MoveSetManager(self): #!!I dont think this is complete:: I think this is managed by Moveset class, I just need execution here.
+    def MoveSetManager(self): #!!I don't think this is complete:: I think this is managed by Moveset class, I just need execution here.
         #Add a try and catch to this to catch invalid options
         #Make this use MoveSet class functions
-        ViewBool:bool = bool(input("[1] View All Moves\n[2] View Learned Moves") - 1) #True -> 2, False -> 1        
+        ViewBool:bool = bool(int(input("[1] View All Moves\n[2] View Learned Moves")) - 1) #True -> 2, False -> 1
         self.ViewMoves(ViewBool)
-        #Next up, it will ask if to perform extra actions like change. Think pokemon.
+        #Next up, it will ask if to perform extra actions like change. Think Pokémon.
     
     def ViewMoves(self,ViewBool:bool): #!!I dont think this is complete
         print("\n")
-        if ViewBool == True:
+        if ViewBool:
             for i in list(self.MoveSet.MoveSetObj.keys()): #Fetches keys from moveset objects' dict, then prints chosen move out.
                 Move:Moves.Moves = self.MoveSet.GetMove(i)
                 print(f"[{i}] {Move.MoveName}")
