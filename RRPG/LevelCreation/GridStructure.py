@@ -214,8 +214,8 @@ if __name__ == "__main__":
     NWall:int = 0
     NEdge:int = 12
     NPlaceholder:int = 35
-    for i in range(Maze.x_dim-1):
-        for j in range(Maze.y_dim-1):
+    for i in range(0,Maze.x_dim):
+        for j in range(0,Maze.y_dim):
             print((i,j))
             cellGot = Maze.GridHolderFinal[(i,j)]
             MazeDataFrame.iat[i,j] = cellGot
