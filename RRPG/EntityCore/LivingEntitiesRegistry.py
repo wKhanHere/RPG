@@ -4,7 +4,7 @@ import copy
 import EntityCore.LivingEntities as L
 import EntityCore.CustomEntities.Player as Player
 
-class EntitiesRegistry():
+class EntitiesRegistry:
     def __init__(self):
         self.EntitiesList: dict[str, L.LivingEntity] = {}
 
@@ -65,7 +65,7 @@ def RegisterEntities(RegistryObj: EntitiesRegistry, EntityOrParams: Union[L.Livi
 def ValidateEntityRegistryKeys(RegistryKeys: list[str], Strict: bool = False) -> bool:
     """
     Compare provided RegistryKeys list to the parameter order of LivingEntity.CreateGenericEntity.
-    If mismatch, print a helpful warning (or raise if Strict=True). Returns True if match.
+    If mismatched, print a helpful warning (or raise if Strict=True). Returns True if match.
     """
     Sig = inspect.signature(L.LivingEntity.CreateGenericEntity)
     # exclude 'cls' if present

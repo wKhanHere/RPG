@@ -2,12 +2,27 @@ import random
 import copy
 from typing import Any
 
+import pandas
+
+
+class CellObject: #Cells are fundamental units of a maze grid: Wall is permanent, Edge is a way to differentiate cells, will finalize to walls.
+    def __init__(self,Type:str="PLACEHOLDER",Weight:float=0):
+        self.TypeList:list = ["Empty","Wall","Edge","PLACEHOLDER"]
+        self.TypeSet(Type)
+        self.Weight:float = Weight #For events
+        self.Finalized:bool = False #Used to check if tile is iterated
+        self.Type = "PLACEHOLDER"
+    def TypeSet(self,Type) -> None:
+        if Type in self.TypeList:
+            self.Type = Type
+        else:
+            print("Invalid Type Given: Replacing with placeholder.")
+    def Info(self) -> None:
+        print("Type:",self.Type,"\nFinalized:",self.Finalized,"\nWeight:",self.Weight)
 
 class Grid:
     """An object used to Manage Grid Data."""
-    def __init__(self) -> None: #please use odd numbered grids
-        x = int(input("Length: "))
-        y = int(input("Height: "))
+    def __init__(self,x:int,y:int) -> None: #please use odd numbered grids
         self.x_dim:int = 2*x+1
         self.y_dim:int = 2*y+1
         self.EmptyTiles:list = [] #This refers to Empty cells initially
@@ -17,15 +32,15 @@ class Grid:
         self.ProcessingGrid:dict = {}  #Essentially Midway work Grid, Grid base is base grid and grid final is result
         self.TypeList:list = ["Empty","Wall","Edge","PLACEHOLDER"]
         self.UnFUniversal:list = [] #Basically Base Mapped to Unfinalized keys (processing keys)
-        self.UnFEmpty:list = [] #It is a list of keys local to this function, which sets coords to finalized if the Finalizing Wilson Sequence occurs: NOTE This uses USEFULTILES Coords (They all are empty at this stage)
+        self.UnFEmpty:list = [] #It is a list of keys local to this function, which sets cords to finalized if the Finalizing Wilson Sequence occurs: NOTE This uses USEFUL TILES  Cords (They all are empty at this stage)
         self.MoveDir:str = "" #Needed to be predefined for ChooseDir() to work
-        self.EndGenerationStep1:bool = False #So that i dont run the gen loop 10000 times
-        #Empty Serves as finalized, wall is counted as unfinalized until i Feel like it should be finallzed *I have no idea how to do this properly w/o turning whole grid empty
+        self.EndGenerationStep1:bool = False #So that I don't run the gen loop 10000 times
+
     def SetGridBase(self) -> None:
         """Creates a basic grid used for running maze creation algorithms."""
         for j in range(0,self.y_dim): #Adds cells to Maze grid, Empty Base Walls
           for i in range(0,self.x_dim):
-            self.GridHolder[(i,j)] = cell()
+            self.GridHolder[(i,j)] = CellObject()
             if (i % 2 == 0 and j % 2 == 0) or (i in [0,self.x_dim-1]) or (j in [0,self.y_dim-1]):  self.GridHolder[(i,j)].TypeSet("Wall")
             elif (i%2 == 0 and j%2 ==1) or (i%2 == 1 and j%2 ==0): self.GridHolder[(i,j)].TypeSet("Edge")
             else: 
@@ -36,21 +51,19 @@ class Grid:
         x:int = (xytuple[0]-1)/2 #x,y represent current x,y
         y:int = (xytuple[1]-1)/2 #Crude conversion to Empty tiles coordinates
         self.ProcessingGrid[(2*x+1,2*y+1)].Finalized = True
-        #Figure out a way to create a new object(unique address) of GridHolder and use that to create GridHolderFinal
-        #Grid Final wont be needed as in processing a create a new grid which will be used to update old dictionary 
     def ViewBase(self,clean:bool = False) -> None:
         for j in range(0,self.y_dim): #The i,j ordering is correct, if you think otherwise think again
             for i in range(0,self.x_dim):
-                CellObject:cell = self.GridHolder[(i,j)]
-                if CellObject.Type == "Wall":
+                Cell:CellObject = self.GridHolder[(i, j)]
+                if Cell.Type == "Wall":
                     print("🟨 ",end = "")
-                elif CellObject.Type == "Empty" and CellObject.Finalized == False and (i,j) not in self.UnFUniversal:
+                elif Cell.Type == "Empty" and Cell.Finalized == False and (i,j) not in self.UnFUniversal:
                     print("🟦 ",end = "") #Unprocessed
-                elif CellObject.Finalized:
+                elif Cell.Finalized:
                     print("🔷 ", end= "") #Final
                 elif (i,j) in self.UnFUniversal:
                     print("🟧 ", end= "") #Processing
-                elif CellObject.Type == "Edge":
+                elif Cell.Type == "Edge":
                     print("🟩 ",end ="")
                 if not clean:
                     print((i,j),end="")
@@ -60,16 +73,16 @@ class Grid:
         try:
             for j in range(0,self.y_dim): #The i,j ordering is correct, if you think otherwise think again
                 for i in range(0,self.x_dim):
-                    CellObject:cell = self.ProcessingGrid[(i,j)]
-                    if CellObject.Type == "Wall":
+                    Cell:CellObject = self.ProcessingGrid[(i, j)]
+                    if Cell.Type == "Wall":
                         print("🟨 ",end = "")
-                    elif CellObject.Type == "Empty" and CellObject.Finalized == False and (i,j) not in self.UnFUniversal:
+                    elif Cell.Type == "Empty" and Cell.Finalized == False and (i,j) not in self.UnFUniversal:
                         print("🟦 ",end = "") #Unprocessed
-                    elif CellObject.Finalized:
+                    elif Cell.Finalized:
                         print("🔷 ", end= "") #Final
                     elif (i,j) in self.UnFUniversal:
                         print("🟧 ", end= "") #Processing
-                    elif CellObject.Type == "Edge":
+                    elif Cell.Type == "Edge":
                         print("🟩 ",end ="")
                     if not clean:
                         print((i,j),end="")
@@ -80,10 +93,10 @@ class Grid:
     def ViewFinal(self,clean:bool = False) -> None:
         for j in range(0,self.y_dim):
             for i in range(0,self.x_dim):
-                CellObject:cell = self.GridHolderFinal[(i,j)]
-                if CellObject.Type == "Wall":
+                Cell:CellObject = self.GridHolderFinal[(i, j)]
+                if Cell.Type == "Wall":
                     print("🔶 ",end = "")
-                elif CellObject.Finalized:
+                elif Cell.Finalized:
                     print("🔷 ", end= "") #Final
                 if not clean:
                     print((i,j),end="")
@@ -95,12 +108,12 @@ class Grid:
         """
         ChoiceList:list = []
         for i in self.ProcessingGrid.keys():
-            CellObject:cell = self.ProcessingGrid[(i[0],i[1])]
-            if CellObject.Type == Type and CellObject.Finalized == False:
+            Cell:CellObject = self.ProcessingGrid[(i[0], i[1])]
+            if Cell.Type == Type and Cell.Finalized == False:
                 ChoiceList.append(i)
         return ChoiceList
     def GetRandEmpty(self) -> Any | None:
-        """Returns a coords of a random "Empty" cell (key) (For Processing Grid only)"""
+        """Returns a cords of a random "Empty" cell (key) (For Processing Grid only)"""
         ListEmpty:list = self.GetAllType("Empty")
         if not ListEmpty:
             return None
@@ -134,10 +147,10 @@ class Grid:
             Coord[1] -= 1
         if Dir == 3:
             Coord[0] += 1
-        return Coord
+        return tuple(Coord)
     def GenMazeLoop(self) -> None:
         while 1 > 0:
-            #Please Put this into the class: So as to measure how much is done and make % not a troll and use that % value to switch b/w generation algorithms
+            #Please Put this into the class: To measure how much is done and make % not a troll and use that % value to switch b/w generation algorithms
             Maze.GenMaze_Step1()   
             if Maze.EndGenerationStep1:
                 Maze.GenMaze_Step2()
@@ -146,7 +159,7 @@ class Grid:
     def GenMaze_Step1(self) -> None:
         """Wilson Algorithm for Mazes, creates the base maze without tile population."""
         xytuple:tuple = self.GetRandEmpty() #Adds Initial Point for generation: Is converted into Tile Keys next
-        if xytuple == None: #Essentially if all tiles are finalized, it returns None and thus Gen function ends.
+        if xytuple is None: #Essentially if all tiles are finalized, it returns None and thus Gen function ends.
             self.EndGenerationStep1 = True
             return
         x:int = (xytuple[0]-1)/2 #x,y represent current x,y
@@ -156,7 +169,7 @@ class Grid:
         while 1>0:
             self.MoveDir = self.ChooseDir(x,y) #Essentially Chooses a dir, and then moves accordingly in proceeding lines    
             x2,y2 = self.DirToKey(self.MoveDir,[x,y]) #It is first stored in x2 y2 just to get the Edge cell inbetween and add it to list.
-            CorrespondingCell:cell = self.ProcessingGrid[(2*x2+1,2*y2+1)]
+            CorrespondingCell:CellObject = self.ProcessingGrid[(2 * x2 + 1, 2 * y2 + 1)]
             self.UnFEmpty.append((x2,y2))
             self.UnFUniversal.append((2*x2+1,2*y2+1))
             self.UnFUniversal.append((x+x2+1,y+y2+1)) #This refers to Edge cell in between
@@ -164,7 +177,7 @@ class Grid:
             y = copy.deepcopy(y2)
             if CorrespondingCell.Finalized:
                 for i in self.UnFUniversal:
-                    Cell:cell = self.ProcessingGrid[i]
+                    Cell:CellObject = self.ProcessingGrid[i]
                     Cell.Finalized = True
                     if Cell.Type == "Edge": Cell.Type = "Empty"
                 del self.UnFEmpty[0:]
@@ -177,32 +190,20 @@ class Grid:
                 y = self.UnFEmpty[0][1] 
     def GenMaze_Step2(self) -> None: #Make Walls Final, Make Edges Final and Walls. Calls Final Step after done
         for i in self.GetAllType("Wall"):
-            CellObject:cell = self.ProcessingGrid[i]
-            CellObject.Finalized = True
+            Cell:CellObject = self.ProcessingGrid[i]
+            Cell.Finalized = True
         for i in self.GetAllType("Edge"):
-            CellObject:cell = self.ProcessingGrid[i]
-            CellObject.Finalized = True
-            CellObject.Type = "Wall"
+            Cell:CellObject = self.ProcessingGrid[i]
+            Cell.Finalized = True
+            Cell.Type = "Wall"
         self.GenMaze_StepFinal()
     def GenMaze_StepFinal(self) -> None: #Just load Processing grid onto GridHolderFinal and Dump Processing grid
         self.GridHolderFinal = copy.deepcopy(self.ProcessingGrid)
         del self.ProcessingGrid
-class cell: #Cells are fundamental units of a maze grid: Wall is permanent, Edge is a way to differentiate cells, will finalize to walls.
-    def __init__(self,Type:str="PLACEHOLDER",Weight:float=0):
-        self.TypeList:list = ["Empty","Wall","Edge","PLACEHOLDER"]
-        self.TypeSet(Type)
-        self.Weight:float = Weight #For events 
-        self.Finalized:bool = False #Used to check if tile is iterated
-    def TypeSet(self,Type) -> None:
-        if Type in self.TypeList:
-            self.Type = Type
-        else:
-            print("Invalid Type Given: Replacing with placeholder.")
-            self.Type = "PLACEHOLDER"
-    def Info(self) -> None:
-        print("Type:",self.Type,"\nFinalized:",self.Finalized,"\nWeight:",self.Weight)
 if __name__ == "__main__":
-    Maze = Grid()
+    xdim = int(input("Enter X: "))
+    ydim = int(input("Enter Y: "))
+    Maze = Grid(xdim,ydim)
     Maze.SetGridBase()
     Maze.GenMazeLoop()
     Maze.ViewFinal(True) #True -> Clean Result (No Coordinates)
