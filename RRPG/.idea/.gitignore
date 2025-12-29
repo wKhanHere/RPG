@@ -6,3 +6,6 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+#pychache is stupid
+__pycache__/
+*.pyc
