@@ -218,7 +218,7 @@ if __name__ == "__main__":
         for j in range(0,Maze.y_dim):
             print((i,j))
             cellGot = Maze.GridHolderFinal[(i,j)]
-            MazeDataFrame.iat[i,j] = cellGot
+            MazeDataFrame.iat[j,i] = cellGot
             if cellGot.Type == "Empty":
                 NEmpty += 1
             elif cellGot.Type == "Wall":
@@ -227,7 +227,7 @@ if __name__ == "__main__":
                 NEdge += 1
             else:
                 NPlaceholder += 1
-    pplot.pie([NEmpty, NWall, NEdge, NPlaceholder],labels=["No. of Empty","No. of Wall","No. of Edge","No. of Placeholder"],explode = [1,0,0,0],autopct="%5.2f%%")
+    pplot.pie([NEmpty, NWall, NEdge, NPlaceholder],labels=["No. of Empty","No. of Wall","No. of Edge","No. of Placeholder"],explode = [0.1,0,0,0],autopct="%5.2f%%")
     pplot.show()
 
 #We could replace the ChooseDir and Dir to key with one function if we instead converted the selected coordinate tuple pair into an array, did vector operations (up down left right you know maths) and then shipped it back as a tuple
